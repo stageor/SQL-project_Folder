@@ -1,3 +1,4 @@
+![](https://komarev.com/ghpvc/?username=stangeor)
 List includes the following sections:
 
 - Introduction

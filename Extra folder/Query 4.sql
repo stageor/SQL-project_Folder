@@ -1,16 +1,26 @@
-SELECT 
-    skills_dim.skills AS skill,
-    COUNT(*) AS demand_count
-FROM job_postings_fact
-INNER JOIN skills_job_dim 
-    ON job_postings_fact.job_id = skills_job_dim.job_id
-INNER JOIN skills_dim 
-    ON skills_job_dim.skill_id = skills_dim.skill_id
-WHERE 
-    job_title_short = 'Data Analyst'
-    -- AND job_work_from_home = TRUE   -- Uncomment this to filter remote jobs only
-GROUP BY 
-    skills_dim.skills
-ORDER BY 
-    demand_count DESC
-LIMIT 1000;
+WITH da_jobs AS (
+    SELECT job_id
+    FROM job_postings_fact
+    WHERE job_title_short = 'Data Analyst'
+),
+job_skills AS (
+    SELECT DISTINCT
+        dj.job_id,
+        sd.skills
+    FROM da_jobs dj
+    JOIN skills_job_dim sjd
+        ON dj.job_id = sjd.job_id
+    JOIN skills_dim sd
+        ON sjd.skill_id = sd.skill_id
+)
+
+SELECT
+    skills AS skill,
+    COUNT(*) AS demand_count,
+    ROUND(
+        COUNT(*) * 100.0 / (SELECT COUNT(*) FROM da_jobs),
+        2
+    ) AS demand_percentage
+FROM job_skills
+GROUP BY skills
+ORDER BY demand_count DESC;
